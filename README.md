@@ -6,12 +6,17 @@ This tool will only keep the following:
 
 * Blue and Neutral objects
 * Any Red objects that have fired a significant weapon such as:
-    * Missiles
-    * Rockets
-    * Bombs
+  * Missiles
+  * Rockets
+  * Bombs
 * Any Red object that was fired upon by Blue including
-    * Red air and sea-craft that were hit by A-A or A-G missiles
-    * Red ground and sea-craft that were within 50 meters of a dropped weapon
+  * Red air and sea-craft that were hit by A-A or A-G missiles
+  * Red ground and sea-craft that were within 50 meters of a dropped weapon
+
+## Before and After Screenshot
+
+Before (Left) and After (right)
+![](Media/before_and_after.png)
 
 ## Installation and Usage Instructions
 
