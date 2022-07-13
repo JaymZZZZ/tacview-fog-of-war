@@ -1,0 +1,31 @@
+{
+  "name": "jaymzzz/tacview-fog-of-war",
+  "description": "A tool to parse ACMI files and implement fog-of-war by removing all enemy objects that have had no interaction",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "JaymZZZZ",
+      "email": "jaymzzz@jsdmail.com",
+      "role": "Developer"
+    }
+  ],
+  "require": {
+    "php": "^8.0",
+    "illuminate/support": "^8.64",
+    "marc-mabe/php-enum": "^4.4",
+    "nesbot/carbon": "^2.53"
+  },
+  "suggest": {
+    "ext-zip": "*"
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "autoload": {
+    "psr-4": {
+      "Jaymzzz\\Tacviewfogofwar\\": "src"
+    }
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
+}

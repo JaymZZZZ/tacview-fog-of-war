@@ -1,0 +1,1 @@
+Place tacview (txt.acmi or zip.acmi) files in this directory
