@@ -17,6 +17,8 @@
 
 namespace Jaymzzz\Tacviewfogofwar\Parser\Handlers\ReadHandlers;
 
+use Dotenv\Dotenv;
+use Exception;
 use Jaymzzz\Tacviewfogofwar\Acmi;
 use Jaymzzz\Tacviewfogofwar\Libraries\GeoMapLibrary;
 use Jaymzzz\Tacviewfogofwar\Libraries\OutputWriterLibrary;
@@ -137,11 +139,23 @@ class ObjectDeletionHandler implements SentenceHandlerInterface
     function find_weapon_target(Acmi $acmi, AcmiObject $weapon): AcmiObject
     {
         $result = null;
+
+        $distance_in_meters = 50;
+        try {
+            $dotenv = Dotenv::createImmutable("./");
+            $dotenv->load();
+            $dotenv->required('WPN_RADIUS')->isInteger();
+            $distance_in_meters = $_ENV['WPN_RADIUS'];
+        } catch (Exception $e) {
+            OutputWriterLibrary::write_message("Warning: " . $e->getMessage(), "yellow");
+            OutputWriterLibrary::write_message("Using default values...", "yellow");
+        }
+
         foreach ($acmi->objects as $object) {
             if (isset($object->type[0]) && in_array($object->type[0], ["AIR", "SEA", "GROUND"])) {
                 $distance = GeoMapLibrary::get_distance_between_objects($acmi, $object->position, $weapon->position);
 
-                if ($distance < 0.05) {
+                if ($distance < (1000 / $distance_in_meters)) {
                     $result = $object;
                     $lat_long_delta = $distance;
                     OutputWriterLibrary::write_message("Updated to new target " . $object->color . " " . $object->type[0] . " " . $object->name . " with distance of " . number_format($lat_long_delta, 3) . " KM");

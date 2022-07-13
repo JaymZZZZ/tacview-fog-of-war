@@ -12,6 +12,7 @@ This tool will only keep the following:
 * Any Red object that was fired upon by Blue including
   * Red air and sea-craft that were hit by A-A or A-G missiles
   * Red ground and sea-craft that were within 50 meters of a dropped weapon
+    * This distance can be editted in the `.env` file
 
 ## Before and After Screenshot
 

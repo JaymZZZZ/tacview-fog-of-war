@@ -13,7 +13,8 @@
     "php": "^8.0",
     "illuminate/support": "^8.64",
     "marc-mabe/php-enum": "^4.4",
-    "nesbot/carbon": "^2.53"
+    "nesbot/carbon": "^2.53",
+    "vlucas/phpdotenv": "^5.4"
   },
   "suggest": {
     "ext-zip": "*"
