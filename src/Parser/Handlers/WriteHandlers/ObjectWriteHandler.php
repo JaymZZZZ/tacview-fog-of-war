@@ -62,7 +62,7 @@ class ObjectWriteHandler implements SentenceHandlerWriteInterface
 
         [, $hexId, $payload] = $this->matches;
         try {
-            if ($acmi->objects[$hexId]->active == TRUE) {
+            if (isset($acmi->active_objects[$hexId])) {
                 fwrite($file, $sentence . PHP_EOL);
             }
         } catch (Exception $e) {

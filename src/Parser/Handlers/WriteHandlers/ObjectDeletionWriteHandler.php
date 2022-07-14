@@ -62,7 +62,7 @@ class ObjectDeletionWriteHandler implements SentenceHandlerWriteInterface
 
         [, $hexId] = $this->matches;
 
-        if ($acmi->objects[$hexId]->active == TRUE) {
+        if (isset($acmi->active_objects[$hexId])) {
             fwrite($file, $sentence . PHP_EOL);
         }
 

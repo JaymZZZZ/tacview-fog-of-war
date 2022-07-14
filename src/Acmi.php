@@ -55,6 +55,8 @@ class Acmi implements Arrayable
      */
     public AcmiObjectCollection $objects;
 
+    public array $active_objects;
+
 
     /**
      *
@@ -63,6 +65,7 @@ class Acmi implements Arrayable
     {
         $this->properties = new AcmiGlobalProperties();
         $this->objects = new AcmiObjectCollection();
+        $this->active_objects = [];
     }
 
     /**
@@ -70,13 +73,14 @@ class Acmi implements Arrayable
      *
      * @return array
      */
-    #[ArrayShape(['file_type' => "null|string", 'version' => "null|string", 'properties' => "array", 'objects' => "array"])] public function toArray(): array
+    #[ArrayShape(['file_type' => "null|string", 'version' => "null|string", 'properties' => "array", 'objects' => "array", 'active_objects' => "array"])] public function toArray(): array
     {
         return [
             'file_type' => $this->file_type,
             'version' => $this->version,
             'properties' => $this->properties->toArray(),
-            'objects' => $this->toArray(),
+            'objects' => $this->objects->toArray(),
+            'active_objects' => $this->active_objects
         ];
     }
 }

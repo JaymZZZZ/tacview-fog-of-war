@@ -82,6 +82,7 @@ class ObjectDeletionHandler implements SentenceHandlerInterface
 
         }
 
+        unset($acmi->objects[$id]);
 
     }
 
@@ -125,7 +126,7 @@ class ObjectDeletionHandler implements SentenceHandlerInterface
         } else {
             OutputWriterLibrary::write_message("DELETE: removed " . $object->color . " WEAPON with name " . $object->name . " Target HIT: " . $target_object->name . " (" . $target_object->pilot . ") ", "magenta");
         }
-        $acmi->objects[$object->id]->active = TRUE;
+        $acmi->active_objects[$object->id] = "true";
     }
 
     /**
@@ -151,7 +152,7 @@ class ObjectDeletionHandler implements SentenceHandlerInterface
                     $result = $object;
                     $lat_long_delta = $distance;
                     OutputWriterLibrary::write_message("Updated to new target " . $object->color . " " . $object->type[0] . " " . $object->name . " with distance of " . number_format($lat_long_delta, 3) . " KM");
-                    $acmi->objects[$result->id]->active = TRUE;
+                    $acmi->active_objects[$result->id] = "active";
                 }
 
             }

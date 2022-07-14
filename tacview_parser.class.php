@@ -256,16 +256,14 @@ class tacview_parser
         try {
             $this->acmi_parser = $this->acmi_parser_factory->parse($this->file_name);
             $result = $this->acmi_parser->objects;
-            $active = $result->where('active', '=', TRUE);
-            $inactive = $result->where('active', '=', FALSE);
+            $active = $this->acmi_parser->active_objects;
         } catch (Exception $e) {
             OutputWriterLibrary::write_critical_message("Error: " . $e->getMessage(), "red");
             exit();
         }
 
         OutputWriterLibrary::write_critical_message("+++++++++++++++++++++++++++++++++++", "magenta");
-        OutputWriterLibrary::write_critical_message("ACTIVE OBJECTS: " . $active->count() . "", "green");
-        OutputWriterLibrary::write_critical_message("INACTIVE OBJECTS: " . $inactive->count() . "", "yellow");
+        OutputWriterLibrary::write_critical_message("ACTIVE OBJECTS: " . count($active) . "", "green");
 
         $execution_time = (microtime(true) - $start_time);
 

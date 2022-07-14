@@ -89,7 +89,7 @@ class ObjectHandler implements SentenceHandlerInterface
                     break;
                 case "WEAPON":
                     $this->register_weapon($acmi, $object);
-                    $object->active = TRUE;
+                    $acmi->active_objects[$object->id] = "active";
                     break;
                 default:
                     $this->register_misc($object);
@@ -99,7 +99,7 @@ class ObjectHandler implements SentenceHandlerInterface
             $acmi->objects->put($id, $object);
 
             if ($object->color != "Red") {
-                $acmi->objects[$object->id]->active = TRUE;
+                $acmi->active_objects[$object->id] = "active";
             }
 
 
@@ -146,10 +146,6 @@ class ObjectHandler implements SentenceHandlerInterface
 
         if (!isset($object->position)) {
             $object->position = new AcmiObjectRecord();
-        }
-
-        if (!isset($object->active)) {
-            $object->active = FALSE;
         }
 
         if (!is_null($lat) && $lat != '') {
@@ -248,7 +244,7 @@ class ObjectHandler implements SentenceHandlerInterface
         $parent_object = $this->find_weapon_deployer($acmi, $object);
         if ($parent_object->id != -1) {
             OutputWriterLibrary::write_message("WEAPON DEPLOYED - Added new " . $object->color . " WEAPON with name " . $object->name . " fired by: " . $parent_object->name . " (" . $parent_object->pilot . ") ", "red");
-            $acmi->objects[$parent_object->id]->active = TRUE;
+            $acmi->active_objects[$parent_object->id] = "active";
         } else {
             OutputWriterLibrary::write_message("WEAPON DEPLOYED - Added new " . $object->color . " WEAPON with name " . $object->name . " fired by: UNKNOWN", "red");
         }
