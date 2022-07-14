@@ -17,6 +17,7 @@
 
 require_once "./tacview_parser.class.php";
 
-$parser = new tacview_parser(TRUE);
+$parser = new tacview_parser();
+$parser->dry_run();
 
 

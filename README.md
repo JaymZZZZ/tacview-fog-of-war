@@ -46,12 +46,22 @@ Installing the scripts is pretty easy and has minimal requirements:
 
 To run this in your own project simply add the following lines
 
-For a dry run:
+For a dry run (Will only list the files that will be processed):
 
 ```
 require_once "./tacview_parser.class.php";
 
-$parser = new tacview_parser(TRUE);
+$parser = new tacview_parser();
+$parser->dry_run();
+```
+
+For a read-only run (ACMI will be read and validated but no output file written):
+
+```
+require_once "./tacview_parser.class.php";
+
+$parser = new tacview_parser();
+$parser->read_only_run();
 ```
 
 For a real run:
@@ -60,6 +70,17 @@ For a real run:
 require_once "./tacview_parser.class.php";
 
 $parser = new tacview_parser();
+$parser->run();
+```
+
+To disable any verbose output:
+
+```
+require_once "./tacview_parser.class.php";
+
+$parser = new tacview_parser();
+$parser->set_verbose(FALSE);
+$parser->run();
 ```
 
 ### Notes

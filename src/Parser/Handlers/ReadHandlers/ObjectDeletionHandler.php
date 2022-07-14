@@ -17,8 +17,6 @@
 
 namespace Jaymzzz\Tacviewfogofwar\Parser\Handlers\ReadHandlers;
 
-use Dotenv\Dotenv;
-use Exception;
 use Jaymzzz\Tacviewfogofwar\Acmi;
 use Jaymzzz\Tacviewfogofwar\Libraries\GeoMapLibrary;
 use Jaymzzz\Tacviewfogofwar\Libraries\OutputWriterLibrary;
@@ -141,14 +139,8 @@ class ObjectDeletionHandler implements SentenceHandlerInterface
         $result = null;
 
         $distance_in_meters = 50;
-        try {
-            $dotenv = Dotenv::createImmutable("./");
-            $dotenv->load();
-            $dotenv->required('WPN_RADIUS')->isInteger();
+        if (isset($_ENV['WPN_RADIUS']) && is_integer($_ENV['WPN_RADIUS'])) {
             $distance_in_meters = $_ENV['WPN_RADIUS'];
-        } catch (Exception $e) {
-            OutputWriterLibrary::write_message("Warning: " . $e->getMessage(), "yellow");
-            OutputWriterLibrary::write_message("Using default values...", "yellow");
         }
 
         foreach ($acmi->objects as $object) {

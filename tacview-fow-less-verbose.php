@@ -6,7 +6,7 @@
  *
  * @package       tacview-fog-of-war
  * @version       1.0
- * @file          tacview-fow.php
+ * @file          tacview-fow-less-verbose.php
  * @author        JaymZZZZ
  * @copyright     Copyright (c) 2022 James D.
  * @license       This file is part of tacview-fog-of-war - free software licensed under the MIT License
@@ -18,6 +18,7 @@
 require_once "./tacview_parser.class.php";
 
 $parser = new tacview_parser();
+$parser->set_verbose(FALSE);
 $parser->run();
 
 

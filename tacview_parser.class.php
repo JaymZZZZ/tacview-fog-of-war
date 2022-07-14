@@ -18,6 +18,8 @@
 require __DIR__ . '/vendor/autoload.php';
 
 
+use Dotenv\Dotenv;
+use Jaymzzz\Tacviewfogofwar\Acmi;
 use Jaymzzz\Tacviewfogofwar\Libraries\OutputWriterLibrary;
 use Jaymzzz\Tacviewfogofwar\Parser\AcmiParserFactory;
 use Jaymzzz\Tacviewfogofwar\Parser\AcmiWriterFactory;
@@ -54,23 +56,48 @@ class tacview_parser
     private array $files = [];
 
     /**
-     * @var bool|mixed
+     * @var AcmiParserFactory
      */
-    private bool $dry_run;
+    private AcmiParserFactory $acmi_parser_factory;
+
+    /**
+     * @var Acmi
+     */
+    private Acmi $acmi_parser;
+
+    /**
+     * @var AcmiWriterFactory
+     */
+    private AcmiWriterFactory $acmi_write_factory;
+
+    /**
+     * @var float|null
+     */
+    private ?float $total_start_time;
 
     /**
      * @throws Exception
      */
-    public function __construct($dry_run = FALSE)
+    public function __construct()
     {
-
-        $this->dry_run = $dry_run;
-        if ($this->dry_run) {
-            OutputWriterLibrary::write_message("DRY RUN ENABLED: This is a dry run. Nothing will be changed", "magenta_bg");
+        $this->total_start_time = microtime(true);
+        try {
+            $dotenv = Dotenv::createImmutable("./");
+            $dotenv->load();
+            $dotenv->required('WPN_RADIUS')->isInteger();
+        } catch (Exception $e) {
+            OutputWriterLibrary::write_critical_message("Error: " . $e->getMessage(), "red");
         }
+    }
 
-        $total_start_time = microtime(true);
-
+    /**
+     * Main loop
+     */
+    public function run()
+    {
+        if (isset($_ENV['ENABLE_VERBOSE']) && $_ENV['ENABLE_VERBOSE'] == "false") {
+            OutputWriterLibrary::write_critical_message("VERBOSE MODE DISABLED: More detailed messaging will be skipped", "magenta_bg");
+        }
         $this->scan_input_directory();
 
         foreach ($this->files as $file) {
@@ -78,16 +105,53 @@ class tacview_parser
 
             if ($this->is_zip() || $this->is_txt()) {
                 $this->output_name = $this->generate_output_filename();
-                $this->parse_and_write();
+
+                if (isset($_ENV['DRY_RUN']) && $_ENV['DRY_RUN'] == "true") {
+                    continue;
+                }
+                if (isset($_ENV['READ_ONLY']) && $_ENV['READ_ONLY'] == "true") {
+                    $this->parse_acmi_file();
+                } else {
+                    $this->parse_and_write_acmi_file();
+                }
             }
         }
 
 
-        $total_end_time = microtime(true);
-        $execution_time = ($total_end_time - $total_start_time);
+        $execution_time = (microtime(true) - $this->total_start_time);
 
-        OutputWriterLibrary::write_message("TOTAL EXECUTION TIME: " . number_format($execution_time, 3) . " sec", "cyan_bg");
+        OutputWriterLibrary::write_critical_message("TOTAL EXECUTION TIME: " . number_format($execution_time, 3) . " sec", "cyan_bg");
 
+    }
+
+    /**
+     *
+     */
+    public function read_only_run()
+    {
+        $_ENV['READ_ONLY'] = "true";
+        OutputWriterLibrary::write_critical_message("READ ONLY MODE ENABLED: This is a read-only run. Nothing will be changed", "magenta_bg");
+
+        $this->run();
+    }
+
+    /**
+     *
+     */
+    public function dry_run()
+    {
+        $_ENV['DRY_RUN'] = "true";
+        OutputWriterLibrary::write_critical_message("DRY RUN ENABLED: This is a dry run. Nothing will be changed", "magenta_bg");
+
+        $this->run();
+    }
+
+    /**
+     *
+     */
+    public function set_verbose($verbose = FALSE)
+    {
+        $_ENV['ENABLE_VERBOSE'] = ($verbose == TRUE) ? "true" : "false";
     }
 
     /**
@@ -124,14 +188,14 @@ class tacview_parser
     {
 
         if (!$this->is_txt() && !$this->is_zip()) {
-            OutputWriterLibrary::write_message("Invalid filename selected...", "red");
+            OutputWriterLibrary::write_critical_message("Invalid filename selected...", "red");
             die();
         }
 
         $stripped_filename = $this->get_stripped_filename($this->file_name);
-        OutputWriterLibrary::write_message("Input file :" . $this->file_name . "...", "green");
+        OutputWriterLibrary::write_critical_message("Input file :" . $this->file_name . "...", "green");
         $output = $stripped_filename . "_fog_of_war.txt.acmi";
-        OutputWriterLibrary::write_message("Output file :" . $output . "...", "yellow");
+        OutputWriterLibrary::write_critical_message("Output file :" . $output . "...", "yellow");
 
         return $output;
 
@@ -155,57 +219,82 @@ class tacview_parser
     }
 
     /**
-     * Main parse and write loop
-     * @throws Exception
+     * Function to both parse and write an output file
      */
     private
-    function parse_and_write()
+    function parse_and_write_acmi_file()
     {
 
-        $start_time = microtime(true);
-        $factory = new AcmiParserFactory();
+        $this->parse_acmi_file();
+        $this->write_acmi_output();
 
-        $header = $factory->parse_global_properties($this->file_name);
+    }
+
+    /**
+     * Main parsing function
+     */
+    private
+    function parse_acmi_file()
+    {
+        $start_time = microtime(true);
+        $this->acmi_parser_factory = new AcmiParserFactory();
+
+        $header = $this->acmi_parser_factory->parse_global_properties($this->file_name);
 
         $author = $this->trim_and_clean_author($header->properties->author);
-        OutputWriterLibrary::write_message("File Author: " . $author, "yellow");
+        OutputWriterLibrary::write_critical_message("File Author: " . $author, "yellow");
 
-        if ($this->dry_run) {
-            OutputWriterLibrary::write_message("This is a Dry run. Skipping..\r\n", "red");
+        if (isset($_ENV['DRY_RUN']) && isset($_ENV['DRY_RUN']) == "true") {
+            OutputWriterLibrary::write_critical_message("This is a Dry run. Skipping..\r\n", "red");
             return;
         }
 
         if ($this->output_file_exists()) {
-            OutputWriterLibrary::write_message("Output file exists. Skipping..\r\n", "red");
+            OutputWriterLibrary::write_critical_message("Output file exists. Skipping..\r\n", "red");
+            return;
+        }
+        try {
+            $this->acmi_parser = $this->acmi_parser_factory->parse($this->file_name);
+            $result = $this->acmi_parser->objects;
+            $active = $result->where('active', '=', TRUE);
+            $inactive = $result->where('active', '=', FALSE);
+        } catch (Exception $e) {
+            OutputWriterLibrary::write_critical_message("Error: " . $e->getMessage(), "red");
+            exit();
+        }
+
+        OutputWriterLibrary::write_critical_message("+++++++++++++++++++++++++++++++++++", "magenta");
+        OutputWriterLibrary::write_critical_message("ACTIVE OBJECTS: " . $active->count() . "", "green");
+        OutputWriterLibrary::write_critical_message("INACTIVE OBJECTS: " . $inactive->count() . "", "yellow");
+
+        $execution_time = (microtime(true) - $start_time);
+
+        OutputWriterLibrary::write_critical_message("File read time: " . number_format($execution_time, 3) . " sec", "cyan_bg");
+    }
+
+    /**
+     * Main writing function
+     */
+    private function write_acmi_output()
+    {
+
+        if ($this->output_file_exists()) {
             return;
         }
 
-
-        $write_factory = new AcmiWriterFactory($this->output_name);
-
-
-        $parser = $factory->parse($this->file_name);
-        $result = $parser->objects;
-        $active = $result->where('active', '=', TRUE);
-        $inactive = $result->where('active', '=', FALSE);
-
-        $end_time = microtime(true);
-        $execution_time = ($end_time - $start_time);
-
-        OutputWriterLibrary::write_message("File read time: " . number_format($execution_time, 3) . " sec", "cyan_bg");
-
         $start_time = microtime(true);
+        $this->acmi_write_factory = new AcmiWriterFactory($this->output_name);
 
-        OutputWriterLibrary::write_message("+++++++++++++++++++++++++++++++++++", "magenta");
-        OutputWriterLibrary::write_message("ACTIVE OBJECTS: " . $active->count() . "", "green");
-        OutputWriterLibrary::write_message("INACTIVE OBJECTS: " . $inactive->count() . "", "yellow");
+        try {
+            $this->acmi_write_factory->parseAndWrite($this->file_name, $this->acmi_parser);
+        } catch (Exception $e) {
+            OutputWriterLibrary::write_critical_message("Error: " . $e->getMessage(), "red");
+            exit();
+        }
 
-        $write_factory->parseAndWrite($this->file_name, $parser);
+        $execution_time = (microtime(true) - $start_time);
 
-        $end_time = microtime(true);
-        $execution_time = ($end_time - $start_time);
-
-        OutputWriterLibrary::write_message("File write time: " . number_format($execution_time, 3) . " sec", "cyan_bg");
+        OutputWriterLibrary::write_critical_message("File write time: " . number_format($execution_time, 3) . " sec", "cyan_bg");
 
     }
 

@@ -59,6 +59,19 @@ class OutputWriterLibrary
     public static
     function write_message(string $message, $color = "off"): void
     {
+        if (isset($_ENV['ENABLE_VERBOSE']) && $_ENV['ENABLE_VERBOSE'] == "false") {
+            return;
+        }
+        echo self::set_color($message, $color) . PHP_EOL;
+    }
+
+    /**
+     * @param string $message
+     * @param string $color
+     */
+    public static
+    function write_critical_message(string $message, $color = "off"): void
+    {
         echo self::set_color($message, $color) . PHP_EOL;
     }
 
