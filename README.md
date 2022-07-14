@@ -37,10 +37,12 @@ Installing the scripts is pretty easy and has minimal requirements:
     * txt.acmi
 * In the directory, execute the `composer update` command to install the required packages.
 
-### Running in Standalone Mode
+### Running in Standalone Mode ()
 
+* FOR A FULL RUN, execute `php tacview-fow.php`
 * FOR A DRY RUN, execute `php tacview-fow-dry-run.php`
-* FOR A REAL RUN, execute `php tacview-fow.php`
+* FOR A READ ONLY RUN, execute `php tacview-fow-read-only.php`
+* FOR A LESS VERBOSE RUN, execute `php tacview-fow-less-verbose.php`
 
 ### Including in your own project
 
