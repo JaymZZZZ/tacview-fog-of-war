@@ -63,9 +63,8 @@ class google_drive
     private function clean_file_name($name): array|string|null
     {
         $name = trim($name);
-        $name = str_replace(' ', '-', $name);
 
-        return preg_replace('/[^A-Za-z0-9\-._]/', '', $name);
+        return preg_replace('/[^A-Za-z0-9\-._] /', '', $name);
     }
 
     function find_folder($folder_name)
