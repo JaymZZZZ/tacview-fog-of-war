@@ -91,8 +91,45 @@ $parser->run();
 * File names will include the name of the author of the ACMI file
 * These files will not display the "This file has not been altered" message in Tacview for obvious reasons.
 
+### Notes on Google Drive support
+
+Google drive support will not work but there are certain steps that need to be followed in order to be able to use
+Google Drive
+
+* You need to create your own Google Cloud Project
+  * (https://developers.google.com/workspace/guides/create-project)
+* You need to enable the Google Drive API integrations for your project
+  * (https://developers.google.com/workspace/guides/enable-apis)
+* You need to configure OAuth 2.0 Consense for the project
+  * (https://developers.google.com/workspace/guides/configure-oauth-consent)
+* You need to create "Desktop App" credentials and download the resulting JSON credentials file
+  * https://developers.google.com/workspace/guides/create-credentials#desktop-app
+
+Once this is done you need to do two more steps:
+
+1. Rename the JSON file `credentials.json` and place it in the root directory of this project.
+2. Edit the JSON file and change the `redirect_uris` value to `"urn:ietf:wg:oauth:2.0:oob"`
+3. Run `tacview-fow-with-google-drive.php` and follow the instructions to create the required auth tokens.
+
+#### Example credentials.json file
+
+```json
+{
+  "installed": {
+    "client_id": "<YOUR_CLIENT_ID_GOES_HERE>",
+    "project_id": "tacview-fow",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_secret": "<YOUR_CLIENT_SECRET_GOES_HERE>",
+    "redirect_uris": [
+      "urn:ietf:wg:oauth:2.0:oob"
+    ]
+  }
+}
+```
+
 ## Future Plans and Ideas
 
 * Download Tacview files from a remote server/location
 * Provide MD5sum verification that the file was ONLY altered by tacview-fog-of-war in cases where proof may be needed
-* Upload the output files to a remote server or Google Drive.
