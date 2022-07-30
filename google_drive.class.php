@@ -38,6 +38,7 @@ class google_drive
 
         if ($folder_id = $this->find_folder($this->folder_name)) {
             OutputWriterLibrary::write_critical_message("Google Drive Directory '" . $this->folder_name . "' Exists", "yellow");
+            $this->folder_id = $folder_id;
             return $folder_id;
         }
 
@@ -63,9 +64,8 @@ class google_drive
     private function clean_file_name($name): array|string|null
     {
         $name = trim($name);
-        $name = str_replace(' ', '-', $name);
 
-        return preg_replace('/[^A-Za-z0-9\-._]/', '', $name);
+        return preg_replace('/[^A-Za-z0-9\-._] /', '', $name);
     }
 
     function find_folder($folder_name)
@@ -73,7 +73,7 @@ class google_drive
         return $this->find_object($folder_name, 'application/vnd.google-apps.folder');
     }
 
-    function find_object($file_name, $file_type)
+    function find_object($file_name, $file_type, $folder_id = null)
     {
         try {
             $client = $this->get_client();
@@ -82,7 +82,7 @@ class google_drive
             $page_token = null;
             do {
                 $response = $drive_service->files->listFiles([
-                    'q' => "mimeType='" . $file_type . "' and name='" . $file_name . "' and trashed=false",
+                    'q' => "mimeType='" . $file_type . "' and name='" . $file_name . "' and trashed=false and appProperties has { key='tacview-fow-id' and value='" . $folder_id . "' }",
                     'spaces' => 'drive',
                     'pageToken' => $page_token,
                     'fields' => 'nextPageToken, files(id, name)',
@@ -161,7 +161,9 @@ class google_drive
 
         $file_name = $this->clean_file_name($file_name);
 
-        if ($file_id = $this->find_file($file_name)) {
+        OutputWriterLibrary::write_critical_message("Attempting to upload '" . $file_name . "' to Google Drive...");
+
+        if ($file_id = $this->find_file($file_name, $folder_id)) {
             OutputWriterLibrary::write_critical_message("Google Drive File '" . $file_name . "' Exists", "yellow");
             return $file_id;
         }
@@ -178,7 +180,10 @@ class google_drive
             $drive_service = new Drive($client);
             $file_metadata = new Drive\DriveFile([
                 'name' => $file_name,
-                'parents' => array($folder_id)
+                'parents' => array($folder_id),
+                'appProperties' => [
+                    "tacview-fow-id" => $folder_id,
+                ]
             ]);
             $content = file_get_contents($local_file_path);
             $file = $drive_service->files->create($file_metadata, [
@@ -187,7 +192,9 @@ class google_drive
                 'uploadType' => 'multipart',
                 'fields' => 'id']);
 
-            OutputWriterLibrary::write_critical_message("Uploaded File: '" . $file_name . "' to '" . $this->folder_name . "'", "green");
+            OutputWriterLibrary::write_critical_message("Uploaded File: '" . $file_name . "' to Folder with ID: '" . $folder_id . "'", "green");
+            OutputWriterLibrary::write_critical_message("URL to Upload Directory: https://drive.google.com/drive/u/0/folders/" . $folder_id, "green");
+            OutputWriterLibrary::write_critical_message("Sharing Link: https://drive.google.com/file/d/" . $file->id . "/view?usp=sharing", "green");
 
             return $file->id;
         } catch (Exception $e) {
@@ -196,14 +203,14 @@ class google_drive
         return null;
     }
 
-    function find_file($file_name)
+    function find_file($file_name, $folder_id = null)
     {
         if (str_contains($file_name, "txt")) {
             $mime = "text/plain";
         } else {
             $mime = "application/zip";
         }
-        return $this->find_object($file_name, $mime);
+        return $this->find_object($file_name, $mime, $folder_id);
     }
 
 }
