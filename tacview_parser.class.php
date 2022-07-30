@@ -40,7 +40,7 @@ class tacview_parser
      * set the output directory as a relative file path
      * @var string
      */
-    private string $output_directory = "/Output/";
+    public string $output_directory = "/Output/";
 
     /**
      * @var string|null
@@ -160,6 +160,15 @@ class tacview_parser
     private function scan_input_directory(): void
     {
         $this->files = array_diff(scandir(__DIR__ . $this->input_directory), array('.', '..'));
+    }
+
+    /**
+     * Scan the output directory for ACMI files. Return list of files.
+     */
+    private function scan_output_directory(): void
+    {
+        $this->files = [];
+        $this->files = array_diff(scandir(__DIR__ . $this->output_directory), array('.', '..'));
     }
 
     /**
@@ -316,6 +325,25 @@ class tacview_parser
     function output_file_exists(): bool
     {
         return is_file($this->output_name);
+    }
+
+
+    /**
+     * List contents of output directory
+     */
+    function list_output_files()
+    {
+
+        $result = [];
+        $this->scan_output_directory();
+
+        foreach ($this->files as $file) {
+            if (str_contains($file, ".acmi")) {
+                $result[] = $file;
+            }
+        }
+
+        return $result;
     }
 
 

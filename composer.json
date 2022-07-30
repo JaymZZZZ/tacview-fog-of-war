@@ -11,6 +11,7 @@
   ],
   "require": {
     "php": "^8.0",
+    "google/apiclient": "^2.0",
     "illuminate/support": "^8.64",
     "marc-mabe/php-enum": "^4.4",
     "nesbot/carbon": "^2.53",
