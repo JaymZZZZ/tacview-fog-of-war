@@ -68,17 +68,17 @@ class AcmiWriter
 
     /**
      * @param string $readPath
-     * @param string $writePath
+     * @param string $write_path
      * @return Acmi
      * @throws Exception
      */
-    public function parseAndWriteToFile(string $readPath, string $writePath): void
+    public function parseAndWriteToFile(string $readPath, string $write_path): void
     {
         $this->reader->start($readPath);
         $count = 1;
         $start_time = microtime(true);
 
-        $this->file = fopen($writePath, "w");
+        $this->file = fopen($write_path, "w");
 
         while (!$this->reader->eof()) {
             $sentence = $this->reader->nextSentence();
@@ -106,18 +106,20 @@ class AcmiWriter
 
 
         $zipArchive = new ZipArchive();
-        $zip_name = str_replace("txt", "zip", $writePath);
+        $zip_name = str_replace("txt", "zip", $write_path);
         OutputWriterLibrary::write_message("Creating zip archive: " . $zip_name);
         $zipArchive->open($zip_name, ZipArchive::CREATE);
-        $zipArchive->addFile($writePath);
+        $zipArchive->addFile($write_path);
         $zipArchive->close();
+        OutputWriterLibrary::write_message("Deleting text file: " . $write_path);
+        unlink($write_path);
     }
 
     /**
      * Parses for the #0.0 sentence to change the timeframe
      *
      * @param string $sentence
-     * @param string $writePath
+     * @param string $write_path
      * @param float $delta
      * @return float
      * @throws Exception

@@ -75,6 +75,8 @@ class tacview_parser
      */
     private ?float $total_start_time;
 
+    private bool $is_valid_acmi = true;
+
     /**
      * @throws Exception
      */
@@ -264,7 +266,10 @@ class tacview_parser
         }
         try {
             $this->acmi_parser = $this->acmi_parser_factory->parse($this->file_name);
-            $result = $this->acmi_parser->objects;
+            if (!$this->is_valid_acmi()) {
+                OutputWriterLibrary::write_critical_message("Not a valid ACMI file. Skipping..\r\n", "red");
+                return;
+            }
             $active = $this->acmi_parser->active_objects;
         } catch (Exception $e) {
             OutputWriterLibrary::write_critical_message("Error: " . $e->getMessage(), "red");
@@ -282,10 +287,11 @@ class tacview_parser
     /**
      * Main writing function
      */
-    private function write_acmi_output()
+    private
+    function write_acmi_output()
     {
 
-        if ($this->output_file_exists()) {
+        if ($this->output_file_exists() || !$this->is_valid_acmi()) {
             return;
         }
 
@@ -312,6 +318,9 @@ class tacview_parser
      */
     function trim_and_clean_author($author): array|string|null
     {
+        if ($author || $author == "") {
+            return null;
+        }
         $author = str_replace(' ', '-', $author);
 
         return preg_replace('/[^A-Za-z0-9\-]/', '', $author);
@@ -325,6 +334,19 @@ class tacview_parser
     function output_file_exists(): bool
     {
         return is_file($this->output_name);
+    }
+
+    private
+    function is_valid_acmi()
+    {
+
+        $properties = $this->acmi_parser->properties;
+
+        if (is_null($properties->referenceTime) || is_null($properties->delta) || is_null($properties->dataRecorder) || is_null($properties->dataSource)) {
+            return false;
+        }
+
+        return true;
     }
 
 
