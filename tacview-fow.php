@@ -18,6 +18,6 @@
 require_once "./tacview_parser.class.php";
 
 $parser = new tacview_parser();
-$parser->run();
+$parser->run_recursive();
 
 

@@ -45,13 +45,11 @@ $gdrive->folder_name = $gdrive_folder_name;
 $folder = $gdrive->create_folder();
 
 $parser = new tacview_parser();
-$parser->run();
+$parser->run_recursive();
 
-$output_files = $parser->list_output_files();
+$output_files = $parser->scan_output_directory();
 
-foreach ($output_files as $file) {
-    $gdrive->upload_to_folder($file, __DIR__ . $parser->output_directory . $file, $folder);
-}
+$gdrive->upload_dir($output_files);
 
 
 

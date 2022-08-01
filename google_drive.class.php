@@ -31,13 +31,17 @@ class google_drive
 
     public string $folder_name = "Tacview FOV";
 
-    public function create_folder()
+    public function create_folder($folder_name = null, $parent_id = null)
     {
 
-        $this->folder_name = $this->clean_file_name($this->folder_name);
 
-        if ($folder_id = $this->find_folder($this->folder_name)) {
-            OutputWriterLibrary::write_critical_message("Google Drive Directory '" . $this->folder_name . "' Exists", "yellow");
+        if (is_null($folder_name)) {
+            $folder_name = $this->folder_name;
+        }
+        $folder_name = $this->clean_file_name($folder_name);
+
+        if ($folder_id = $this->find_folder($folder_name, $parent_id)) {
+            OutputWriterLibrary::write_critical_message("Google Drive Directory '" . $folder_name . "' Exists", "yellow");
             $this->folder_id = $folder_id;
             return $folder_id;
         }
@@ -48,9 +52,15 @@ class google_drive
             $drive_service = new Drive($client);
 
             $file_metadata = new Drive\DriveFile([
-                'name' => $this->folder_name,
-                'mimeType' => 'application/vnd.google-apps.folder']);
+                'name' => $folder_name,
+                'mimeType' => 'application/vnd.google-apps.folder',
+                'appProperties' => [
+                    "tacview-fow-id" => $parent_id,
+                ]]);
 
+            if (!is_null($parent_id)) {
+                $file_metadata->parents = [$parent_id];
+            }
             $file = $drive_service->files->create($file_metadata, [
                 'fields' => 'id']);
             return $file->id;
@@ -68,9 +78,9 @@ class google_drive
         return preg_replace('/[^A-Za-z0-9\-._] /', '', $name);
     }
 
-    function find_folder($folder_name)
+    function find_folder($folder_name, $parent_id = null)
     {
-        return $this->find_object($folder_name, 'application/vnd.google-apps.folder');
+        return $this->find_object($folder_name, 'application/vnd.google-apps.folder', $parent_id);
     }
 
     function find_object($file_name, $file_type, $folder_id = null)
@@ -211,6 +221,26 @@ class google_drive
             $mime = "application/zip";
         }
         return $this->find_object($file_name, $mime, $folder_id);
+    }
+
+    public function upload_dir($dir, $parent_id = null)
+    {
+
+        if (is_null($parent_id)) {
+            $parent_id = $this->find_file($this->folder_name);
+        }
+
+        foreach ($dir as $key => $file) {
+            if (is_array($file)) {
+                OutputWriterLibrary::write_critical_message("Creating folder '" . $key . "'");
+                $sub_dir_id = $this->create_folder($key, $parent_id);
+                $this->upload_dir($file, $sub_dir_id);
+            } else {
+                OutputWriterLibrary::write_critical_message("Creating file '" . $file . "' in directory with ID: '" . $parent_id . "'");
+                $this->upload_to_folder(basename($file), $file, $parent_id);
+
+            }
+        }
     }
 
 }

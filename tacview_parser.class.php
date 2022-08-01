@@ -35,21 +35,13 @@ class tacview_parser
      * Set the input directory as a relative file path
      * @var string
      */
-    private string $input_directory = __DIR__ . "/Tacview/";
+    private string $input_directory = __DIR__ . "/Tacview";
     /**
      * set the output directory as a relative file path
      * @var string
      */
-    public string $output_directory = __DIR__ . "/Output/";
+    public string $output_directory = __DIR__ . "/Output";
 
-    /**
-     * @var string|null
-     */
-    private ?string $file_name = null;
-    /**
-     * @var string|void|null
-     */
-    private $output_name = null;
     /**
      * @var array
      */
@@ -75,7 +67,12 @@ class tacview_parser
      */
     private ?float $total_start_time;
 
-    private bool $is_valid_acmi = true;
+    /**
+     * @var string|void
+     */
+    private $output_name;
+
+    private $file_name;
 
     /**
      * @throws Exception
@@ -95,34 +92,41 @@ class tacview_parser
     /**
      * Main loop
      */
-    public function run()
+    public function run_recursive()
     {
         if (isset($_ENV['ENABLE_VERBOSE']) && $_ENV['ENABLE_VERBOSE'] == "false") {
             OutputWriterLibrary::write_critical_message("VERBOSE MODE DISABLED: More detailed messaging will be skipped", "magenta_bg");
         }
-        $this->scan_input_directory();
-
-        foreach ($this->files as $file) {
-            $this->file_name = $this->input_directory . $file;
-
-            if ($this->is_zip() || $this->is_txt()) {
-                $this->output_name = $this->generate_output_filename();
-
-                if (isset($_ENV['DRY_RUN']) && $_ENV['DRY_RUN'] == "true") {
-                    continue;
-                }
-                if (isset($_ENV['READ_ONLY']) && $_ENV['READ_ONLY'] == "true") {
-                    $this->parse_acmi_file();
-                } else {
-                    $this->parse_and_write_acmi_file();
-                }
-            }
-        }
-
+        $files = $this->scan_input_directory();
+        $this->run($files);
 
         $execution_time = (microtime(true) - $this->total_start_time);
 
         OutputWriterLibrary::write_critical_message("TOTAL EXECUTION TIME: " . number_format($execution_time, 3) . " sec", "cyan_bg");
+
+    }
+
+    function run($dir)
+    {
+        foreach ($dir as $file) {
+            if (is_array($file)) {
+                $this->run($file);
+            } else {
+                if ($this->is_zip($file) || $this->is_txt($file)) {
+                    $this->file_name = $file;
+                    $this->output_name = $this->generate_output_filename($file);
+
+                    if (isset($_ENV['DRY_RUN']) && $_ENV['DRY_RUN'] == "true") {
+                        continue;
+                    }
+                    if (isset($_ENV['READ_ONLY']) && $_ENV['READ_ONLY'] == "true") {
+                        $this->parse_acmi_file();
+                    } else {
+                        $this->parse_and_write_acmi_file();
+                    }
+                }
+            }
+        }
 
     }
 
@@ -134,7 +138,7 @@ class tacview_parser
         $_ENV['READ_ONLY'] = "true";
         OutputWriterLibrary::write_critical_message("READ ONLY MODE ENABLED: This is a read-only run. Nothing will be changed", "magenta_bg");
 
-        $this->run();
+        $this->run_recursive();
     }
 
     /**
@@ -145,7 +149,7 @@ class tacview_parser
         $_ENV['DRY_RUN'] = "true";
         OutputWriterLibrary::write_critical_message("DRY RUN ENABLED: This is a dry run. Nothing will be changed", "magenta_bg");
 
-        $this->run();
+        $this->run_recursive();
     }
 
     /**
@@ -159,56 +163,77 @@ class tacview_parser
     /**
      * Scan the input directory for ACMI files. Return list of files.
      */
-    private function scan_input_directory(): void
+    private function scan_input_directory(): array
     {
-        $this->files = array_diff(scandir($this->input_directory), array('.', '..'));
+
+        return $this->scan_directory($this->input_directory);
     }
 
     /**
      * Scan the output directory for ACMI files. Return list of files.
      */
-    private function scan_output_directory(): void
+    public function scan_output_directory(): array
     {
-        $this->files = [];
-        $this->files = array_diff(scandir($this->output_directory), array('.', '..'));
+        return $this->scan_directory($this->output_directory);
+    }
+
+    private function scan_directory($dir): array
+    {
+        $dirs = [];
+
+        foreach (new DirectoryIterator($dir) as $fileInfo) {
+            if ($fileInfo->isDot()) continue;
+            if ($fileInfo->isDir()) {
+                $dirs[$fileInfo->getFilename()] = $this->scan_directory($dir . DIRECTORY_SEPARATOR . $fileInfo->getFilename());
+            } else if ($this->is_txt($fileInfo->getFilename()) || $this->is_zip($fileInfo->getFilename())) {
+                $dirs[] = $fileInfo->getPath() . DIRECTORY_SEPARATOR . $fileInfo->getFilename();
+            }
+        }
+
+        return $dirs;
     }
 
     /**
      * Verify whether the file is a ZIP file.
      * @return bool|int
      */
-    private function is_zip(): bool|int
+    private function is_zip($file_name): bool|int
     {
-        return strpos($this->file_name, "zip.acmi");
+        return strpos($file_name, "zip.acmi");
     }
 
     /**
      * Verify whether the file is a TXT file.
      * @return bool|int
      */
-    private function is_txt(): bool|int
+    private function is_txt($file_name): bool|int
     {
-        return strpos($this->file_name, "txt.acmi");
+        return strpos($file_name, "txt.acmi");
     }
 
     /**
      * Generate the output name based on author information within the ACMI file
      * @return string|void
      */
-    private function generate_output_filename()
+    private function generate_output_filename($input_file)
     {
 
-        if (!$this->is_txt() && !$this->is_zip()) {
+        if (!$this->is_txt($input_file) && !$this->is_zip($input_file)) {
             OutputWriterLibrary::write_critical_message("Invalid filename selected...", "red");
             die();
         }
 
-        $stripped_filename = $this->get_stripped_filename($this->file_name);
-        OutputWriterLibrary::write_critical_message("Input file :" . $this->file_name . "...", "green");
-        $output = $stripped_filename . "_fog_of_war.txt.acmi";
-        OutputWriterLibrary::write_critical_message("Output file :" . $output . "...", "yellow");
+        $stripped_filename = $this->get_stripped_filename($input_file);
+        OutputWriterLibrary::write_critical_message("Input file :" . $input_file . "...", "green");
 
-        return $output;
+        $output_file = $stripped_filename . "_fog_of_war.txt.acmi";
+        OutputWriterLibrary::write_critical_message("Output file :" . $output_file . "...", "yellow");
+
+        if (!is_dir(dirname($output_file))) {
+            mkdir(dirname($output_file), 0755, true);
+        }
+
+        return $output_file;
 
     }
 
@@ -291,7 +316,7 @@ class tacview_parser
     function write_acmi_output()
     {
 
-        if ($this->output_file_exists() || !$this->is_valid_acmi()) {
+        if ($this->output_file_exists($this->output_name) || !$this->is_valid_acmi()) {
             return;
         }
 
@@ -348,25 +373,5 @@ class tacview_parser
 
         return true;
     }
-
-
-    /**
-     * List contents of output directory
-     */
-    function list_output_files()
-    {
-
-        $result = [];
-        $this->scan_output_directory();
-
-        foreach ($this->files as $file) {
-            if (str_contains($file, ".acmi")) {
-                $result[] = $file;
-            }
-        }
-
-        return $result;
-    }
-
 
 }

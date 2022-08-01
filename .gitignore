@@ -1,7 +1,7 @@
 composer.phar
 /vendor/
-/Output/*.acmi
-/Tacview/*.acmi
+/Output/*
+/Tacview/*
 /.idea/
 token.json
 credentials.json
