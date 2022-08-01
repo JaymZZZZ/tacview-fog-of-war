@@ -48,7 +48,7 @@ class google_drive
         $folder_name = $this->clean_file_name($folder_name);
 
         if ($folder_id = $this->find_folder($folder_name, $parent_id)) {
-            OutputWriterLibrary::write_critical_message("Google Drive Directory '" . $folder_name . "' Exists", "yellow");
+            OutputWriterLibrary::write_critical_message("Google Drive Directory '" . $folder_name . "' Exists", "blue");
             $this->folder_id = $folder_id;
             return $folder_id;
         }
@@ -181,7 +181,7 @@ class google_drive
         OutputWriterLibrary::write_critical_message("Attempting to upload '" . $file_name . "' to Google Drive...");
 
         if ($file_id = $this->find_file($file_name, $folder_id)) {
-            OutputWriterLibrary::write_critical_message("Google Drive File '" . $file_name . "' Exists", "yellow");
+            OutputWriterLibrary::write_critical_message("Google Drive File '" . $file_name . "' Exists", "blue");
             return $file_id;
         }
 
@@ -267,7 +267,7 @@ class google_drive
             $data = json_decode(file_get_contents("cache.json"));
             if ($data->timestamp && $data->timestamp >= time() - $this->timeout_seconds) {
                 $seconds = $data->timestamp + $this->timeout_seconds - time();
-                OutputWriterLibrary::write_critical_message("Script may already be running. Please try again in " . $seconds . " seconds...", "red");
+                OutputWriterLibrary::write_critical_message("Script may already be running. Please try again in " . $seconds . " seconds...", "red_bg");
                 die();
             }
         }
