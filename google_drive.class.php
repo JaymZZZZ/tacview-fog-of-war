@@ -51,6 +51,8 @@ class google_drive
             OutputWriterLibrary::write_critical_message("Google Drive Directory '" . $folder_name . "' Exists", "blue");
             $this->folder_id = $folder_id;
             return $folder_id;
+        } else {
+            OutputWriterLibrary::write_critical_message("Creating folder '" . $key . "'");
         }
 
         try {
@@ -178,11 +180,12 @@ class google_drive
 
         $file_name = $this->clean_file_name($file_name);
 
-        OutputWriterLibrary::write_critical_message("Attempting to upload '" . $file_name . "' to Google Drive...");
 
         if ($file_id = $this->find_file($file_name, $folder_id)) {
             OutputWriterLibrary::write_critical_message("Google Drive File '" . $file_name . "' Exists", "blue");
             return $file_id;
+        } else {
+            OutputWriterLibrary::write_critical_message("Attempting to upload '" . $file_name . "' to Google Drive in directory with ID: " . $folder_id . "...");
         }
 
         if (str_contains($file_name, "txt")) {
@@ -240,11 +243,9 @@ class google_drive
 
         foreach ($dir as $key => $file) {
             if (is_array($file)) {
-                OutputWriterLibrary::write_critical_message("Creating folder '" . $key . "'");
                 $sub_dir_id = $this->create_folder($key, $parent_id);
                 $this->upload_dir($file, $sub_dir_id);
             } else {
-                OutputWriterLibrary::write_critical_message("Creating file '" . $file . "' in directory with ID: '" . $parent_id . "'");
                 $this->upload_to_folder(basename($file), $file, $parent_id);
 
             }
