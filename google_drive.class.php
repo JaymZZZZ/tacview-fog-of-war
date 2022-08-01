@@ -48,7 +48,7 @@ class google_drive
         $folder_name = $this->clean_file_name($folder_name);
 
         if ($folder_id = $this->find_folder($folder_name, $parent_id)) {
-            OutputWriterLibrary::write_critical_message("Google Drive Directory '" . $folder_name . "' Exists", "green");
+            OutputWriterLibrary::write_critical_message("*** Google Drive Directory '" . $folder_name . "' Exists", "green");
             $this->folder_id = $folder_id;
             return $folder_id;
         } else {
@@ -182,7 +182,7 @@ class google_drive
 
 
         if ($file_id = $this->find_file($file_name, $folder_id)) {
-            OutputWriterLibrary::write_critical_message("Google Drive File '" . $file_name . "' Exists", "green");
+            OutputWriterLibrary::write_critical_message("*** Google Drive File '" . $file_name . "' Exists", "green");
             return $file_id;
         } else {
             OutputWriterLibrary::write_critical_message("Attempting to upload '" . $file_name . "' to Google Drive in directory with ID: " . $folder_id . "...");
