@@ -260,7 +260,8 @@ class google_drive
         if (is_file("cache.json")) {
             $data = json_decode(file_get_contents("cache.json"));
             if ($data->timestamp && $data->timestamp >= time() - 300) {
-                OutputWriterLibrary::write_critical_message("Script may already be running. Please try again later...", "red");
+                $seconds = $data->timestamp + 300 - time();
+                OutputWriterLibrary::write_critical_message("Script may already be running. Please try again in " . $seconds . " seconds...", "red");
                 die();
             }
         }
