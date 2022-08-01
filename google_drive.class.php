@@ -83,7 +83,7 @@ class google_drive
     {
         $name = trim($name);
 
-        return preg_replace('/[^A-Za-z0-9\-._] /', '', $name);
+        return preg_replace('/[^A-Za-z0-9\-._ \]\[]/', '', $name);
     }
 
     function find_folder($folder_name, $parent_id = null)
