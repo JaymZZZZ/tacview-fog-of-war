@@ -31,6 +31,11 @@ class google_drive
 
     public string $folder_name = "Tacview FOV";
 
+    public function __construct()
+    {
+        $this->get_cache_file();
+    }
+
     public function create_folder($folder_name = null, $parent_id = null)
     {
 
@@ -111,7 +116,6 @@ class google_drive
 
     public function get_client()
     {
-        $this->get_cache_file();
         try {
             $client = new Client();
             $client->setApplicationName('Tacview-FOW');
