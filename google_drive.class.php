@@ -111,6 +111,7 @@ class google_drive
 
     public function get_client()
     {
+        $this->get_cache_file();
         try {
             $client = new Client();
             $client->setApplicationName('Tacview-FOW');
@@ -226,6 +227,7 @@ class google_drive
     public function upload_dir($dir, $parent_id = null)
     {
 
+        $this->set_cache_file();
         if (is_null($parent_id)) {
             $parent_id = $this->find_file($this->folder_name);
         }
@@ -241,6 +243,32 @@ class google_drive
 
             }
         }
+        $this->unset_cache_file();
+    }
+
+    public function set_cache_file()
+    {
+        $array = [
+            'timestamp' => time()
+        ];
+
+        file_put_contents("cache.json", json_encode($array));
+    }
+
+    public function get_cache_file()
+    {
+        if (is_file("cache.json")) {
+            $data = json_decode(file_get_contents("cache.json"));
+            if ($data->timestamp && $data->timestamp >= time() - 300) {
+                OutputWriterLibrary::write_critical_message("Script may already be running. Please try again later...", "red");
+                die();
+            }
+        }
+    }
+
+    public function unset_cache_file()
+    {
+        unlink("cache.json");
     }
 
 }
