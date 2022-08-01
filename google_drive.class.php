@@ -52,7 +52,7 @@ class google_drive
             $this->folder_id = $folder_id;
             return $folder_id;
         } else {
-            OutputWriterLibrary::write_critical_message("Creating folder '" . $key . "'");
+            OutputWriterLibrary::write_critical_message("Creating folder '" . $folder_name . "'");
         }
 
         try {
