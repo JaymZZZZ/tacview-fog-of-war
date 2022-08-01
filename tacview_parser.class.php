@@ -35,12 +35,12 @@ class tacview_parser
      * Set the input directory as a relative file path
      * @var string
      */
-    private string $input_directory = "/Tacview/";
+    private string $input_directory = __DIR__ . "/Tacview/";
     /**
      * set the output directory as a relative file path
      * @var string
      */
-    public string $output_directory = "/Output/";
+    public string $output_directory = __DIR__ . "/Output/";
 
     /**
      * @var string|null
@@ -103,7 +103,7 @@ class tacview_parser
         $this->scan_input_directory();
 
         foreach ($this->files as $file) {
-            $this->file_name = __DIR__ . $this->input_directory . $file;
+            $this->file_name = $this->input_directory . $file;
 
             if ($this->is_zip() || $this->is_txt()) {
                 $this->output_name = $this->generate_output_filename();
@@ -161,7 +161,7 @@ class tacview_parser
      */
     private function scan_input_directory(): void
     {
-        $this->files = array_diff(scandir(__DIR__ . $this->input_directory), array('.', '..'));
+        $this->files = array_diff(scandir($this->input_directory), array('.', '..'));
     }
 
     /**
@@ -170,7 +170,7 @@ class tacview_parser
     private function scan_output_directory(): void
     {
         $this->files = [];
-        $this->files = array_diff(scandir(__DIR__ . $this->output_directory), array('.', '..'));
+        $this->files = array_diff(scandir($this->output_directory), array('.', '..'));
     }
 
     /**
