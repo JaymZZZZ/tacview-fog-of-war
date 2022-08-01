@@ -31,6 +31,8 @@ class google_drive
 
     public string $folder_name = "Tacview FOV";
 
+    public int $timeout_seconds = 180;
+
     public function __construct()
     {
         $this->get_cache_file();
@@ -263,8 +265,8 @@ class google_drive
     {
         if (is_file("cache.json")) {
             $data = json_decode(file_get_contents("cache.json"));
-            if ($data->timestamp && $data->timestamp >= time() - 300) {
-                $seconds = $data->timestamp + 300 - time();
+            if ($data->timestamp && $data->timestamp >= time() - $this->timeout_seconds) {
+                $seconds = $data->timestamp + $this->timeout_seconds - time();
                 OutputWriterLibrary::write_critical_message("Script may already be running. Please try again in " . $seconds . " seconds...", "red");
                 die();
             }
