@@ -273,7 +273,9 @@ class google_drive
 
     public function unset_cache_file()
     {
-        unlink("cache.json");
+        if (is_file("cache.json")) {
+            unlink("cache.json");
+        }
     }
 
 }
