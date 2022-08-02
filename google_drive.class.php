@@ -88,7 +88,11 @@ class google_drive
 
     function find_folder($folder_name, $parent_id = null)
     {
-        return $this->find_object($folder_name, 'application/vnd.google-apps.folder', $parent_id);
+        $file = $this->find_object($folder_name, 'application/vnd.google-apps.folder', $parent_id);
+        if ($file) {
+            return $file->id;
+        }
+        return null;
     }
 
     function find_object($file_name, $file_type, $folder_id = null)
@@ -103,10 +107,12 @@ class google_drive
                     'q' => "mimeType='" . $file_type . "' and name='" . $file_name . "' and trashed=false and appProperties has { key='tacview-fow-id' and value='" . $folder_id . "' }",
                     'spaces' => 'drive',
                     'pageToken' => $page_token,
-                    'fields' => 'nextPageToken, files(id, name)',
+                    'fields' => 'nextPageToken, files(id, name, md5Checksum)',
                 ]);
+
+
                 foreach ($response->files as $file) {
-                    return $file->id;
+                    return $file;
                 }
 
                 $page_token = $response->pageToken;
@@ -174,14 +180,32 @@ class google_drive
         return $client;
     }
 
+    function deleteFile($file_id)
+    {
+        try {
+            $client = $this->get_client();
+            $client->addScope(Drive::DRIVE);
+            $drive_service = new Drive($client);
+            $drive_service->files->delete($file_id);
+        } catch (Exception $e) {
+            OutputWriterLibrary::write_critical_message("Google Drive ERROR: " . $e->getMessage(), "red");
+        }
+    }
+
     public function upload_to_folder($file_name, $local_file_path, $folder_id)
     {
 
         $file_name = $this->clean_file_name($file_name);
 
+        $md5sum = md5_file($local_file_path);
 
-        if ($file_id = $this->find_file($file_name, $folder_id)) {
-            return $file_id;
+        if ($file = $this->find_file($file_name, $folder_id)) {
+            if ($md5sum == $file->md5Checksum) {
+                return $file->id;
+            } else {
+                $this->deleteFile($file->id);
+                OutputWriterLibrary::write_critical_message("MD5 MISMATCH '" . $file_name . "' - " . $md5sum . " | " . $file->md5Checksum, "blue");
+            }
         } else {
             OutputWriterLibrary::write_critical_message("Attempting to upload '" . $file_name . "' to Google Drive in directory with ID: " . $folder_id . "...");
         }
@@ -201,6 +225,7 @@ class google_drive
                 'parents' => array($folder_id),
                 'appProperties' => [
                     "tacview-fow-id" => $folder_id,
+                    "update-time" => filemtime($local_file_path)
                 ]
             ]);
             $content = file_get_contents($local_file_path);
@@ -237,6 +262,7 @@ class google_drive
         $this->set_cache_file();
         if (is_null($parent_id)) {
             $parent_id = $this->find_file($this->folder_name);
+            $parent_id = $parent_id->id;
         }
 
         foreach ($dir as $key => $file) {
