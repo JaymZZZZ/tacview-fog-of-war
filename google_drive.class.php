@@ -75,6 +75,7 @@ class google_drive
 
         } catch (Exception $e) {
             OutputWriterLibrary::write_critical_message("Google Drive ERROR: " . $e->getMessage(), "red");
+            $this->unset_cache_file();
             die();
         }
     }
@@ -173,6 +174,7 @@ class google_drive
                 OutputWriterLibrary::write_critical_message("Google Drive ERROR: https://developers.google.com/workspace/guides/create-credentials#desktop-app", "red");
             }
             OutputWriterLibrary::write_critical_message("Google Drive ERROR: " . $e->getMessage(), "red");
+            $this->unset_cache_file();
             die();
         }
 
@@ -293,6 +295,7 @@ class google_drive
             if ($data->timestamp && $data->timestamp >= time() - $this->timeout_seconds) {
                 $seconds = $data->timestamp + $this->timeout_seconds - time();
                 OutputWriterLibrary::write_critical_message("Script may already be running. Please try again in " . $seconds . " seconds...", "red_bg");
+                $this->unset_cache_file();
                 die();
             }
         }
