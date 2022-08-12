@@ -295,7 +295,6 @@ class google_drive
             if ($data->timestamp && $data->timestamp >= time() - $this->timeout_seconds) {
                 $seconds = $data->timestamp + $this->timeout_seconds - time();
                 OutputWriterLibrary::write_critical_message("Script may already be running. Please try again in " . $seconds . " seconds...", "red_bg");
-                $this->unset_cache_file();
                 die();
             }
         }
