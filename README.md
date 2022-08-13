@@ -100,32 +100,28 @@ Google Drive
   * (https://developers.google.com/workspace/guides/create-project)
 * You need to enable the Google Drive API integrations for your project
   * (https://developers.google.com/workspace/guides/enable-apis)
-* You need to configure OAuth 2.0 Consense for the project
-  * (https://developers.google.com/workspace/guides/configure-oauth-consent)
-* You need to create "Desktop App" credentials and download the resulting JSON credentials file
-  * https://developers.google.com/workspace/guides/create-credentials#desktop-app
+* You need to create a service account and credentials for the service account
+  * (https://developers.google.com/workspace/guides/create-credentials#service-account)
 
 Once this is done you need to do two more steps:
 
 1. Rename the JSON file `credentials.json` and place it in the root directory of this project.
-2. Edit the JSON file and change the `redirect_uris` value to `"urn:ietf:wg:oauth:2.0:oob"`
-3. Run `tacview-fow-with-google-drive.php` and follow the instructions to create the required auth tokens.
+2. Run `tacview-fow-with-google-drive.php` and follow the instructions.
 
 #### Example credentials.json file
 
 ```json
 {
-  "installed": {
-    "client_id": "<YOUR_CLIENT_ID_GOES_HERE>",
-    "project_id": "tacview-fow",
-    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-    "token_uri": "https://oauth2.googleapis.com/token",
-    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-    "client_secret": "<YOUR_CLIENT_SECRET_GOES_HERE>",
-    "redirect_uris": [
-      "urn:ietf:wg:oauth:2.0:oob"
-    ]
-  }
+  "type": "service_account",
+  "project_id": "<YOUR_PROJECT_ID>",
+  "private_key_id": "<YOUR PRIVATE KEY ID>",
+  "private_key": "-----PRIVATE KEY-----",
+  "client_email": "tacviewfow@example.iam.gserviceaccount.com",
+  "client_id": "<YOUR CLIENT ID>",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/tacviewfow%40example.iam.gserviceaccount.com"
 }
 ```
 

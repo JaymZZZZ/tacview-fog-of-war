@@ -74,7 +74,7 @@ class google_drive
             return $file->id;
 
         } catch (Exception $e) {
-            OutputWriterLibrary::write_critical_message("Google Drive ERROR: " . $e->getMessage(), "red");
+            OutputWriterLibrary::write_critical_message("Google Drive ERROR: (" . __METHOD__ . ") " . $e->getMessage(), "red");
             $this->unset_cache_file();
             die();
         }
@@ -119,7 +119,7 @@ class google_drive
                 $page_token = $response->pageToken;
             } while ($page_token != null);
         } catch (Exception $e) {
-            OutputWriterLibrary::write_critical_message("Google Drive ERROR: " . $e->getMessage(), "red");
+            OutputWriterLibrary::write_critical_message("Google Drive ERROR: (" . __METHOD__ . ") " . $e->getMessage(), "red");
         }
         return null;
     }
@@ -131,49 +131,15 @@ class google_drive
             $client->setApplicationName('Tacview-FOW');
             $client->setScopes('https://www.googleapis.com/auth/drive');
             $client->setAuthConfig('credentials.json');
-            $client->setAccessType('offline');
-            $client->setPrompt('select_account consent');
 
-            $token_path = 'token.json';
-            if (file_exists($token_path)) {
-                $access_token = json_decode(file_get_contents($token_path), true);
-                $client->setAccessToken($access_token);
-            }
-
-
-            if ($client->isAccessTokenExpired()) {
-                // Refresh the token if possible, else fetch a new one.
-                if ($client->getRefreshToken()) {
-                    $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
-                } else {
-                    // Request authorization from the user.
-                    $auth_url = $client->createAuthUrl();
-                    printf("Open the following link in your browser:\n%s\n", $auth_url);
-                    print 'Enter verification code: ';
-                    $auth_code = trim(fgets(STDIN));
-
-                    $access_token = $client->fetchAccessTokenWithAuthCode($auth_code);
-                    $client->setAccessToken($access_token);
-
-                    // Check to see if there was an error.
-                    if (array_key_exists('error', $access_token)) {
-                        throw new Exception(join(', ', $access_token));
-                    }
-                }
-                // Save the token to a file.
-                if (!file_exists(dirname($token_path))) {
-                    mkdir(dirname($token_path), 0700, true);
-                }
-                file_put_contents($token_path, json_encode($client->getAccessToken()));
-            }
         } catch (Exception $e) {
             if ($e instanceof InvalidArgumentException) {
-                OutputWriterLibrary::write_critical_message("Google Drive ERROR: " . $e->getMessage(), "red");
+                OutputWriterLibrary::write_critical_message("Google Drive ERROR: (" . __METHOD__ . ") " . $e->getMessage(), "red");
                 OutputWriterLibrary::write_critical_message("Google Drive ERROR: Please create and download a credentials file in order to use Google Drive and name it 'credentials.json'", "red");
                 OutputWriterLibrary::write_critical_message("Google Drive ERROR: For information on how to do so, please visit:", "red");
                 OutputWriterLibrary::write_critical_message("Google Drive ERROR: https://developers.google.com/workspace/guides/create-credentials#desktop-app", "red");
             }
-            OutputWriterLibrary::write_critical_message("Google Drive ERROR: " . $e->getMessage(), "red");
+            OutputWriterLibrary::write_critical_message("Google Drive ERROR: (" . __METHOD__ . ") " . $e->getMessage(), "red");
             $this->unset_cache_file();
             die();
         }
@@ -190,7 +156,7 @@ class google_drive
             $drive_service = new Drive($client);
             $drive_service->files->delete($file_id);
         } catch (Exception $e) {
-            OutputWriterLibrary::write_critical_message("Google Drive ERROR: " . $e->getMessage(), "red");
+            OutputWriterLibrary::write_critical_message("Google Drive ERROR: (" . __METHOD__ . ") " . $e->getMessage(), "red");
         }
     }
 
@@ -243,7 +209,7 @@ class google_drive
 
             return $file->id;
         } catch (Exception $e) {
-            OutputWriterLibrary::write_critical_message("Google Drive ERROR: " . $e->getMessage(), "red");
+            OutputWriterLibrary::write_critical_message("Google Drive ERROR: (" . __METHOD__ . ") " . $e->getMessage(), "red");
         }
         return null;
     }
